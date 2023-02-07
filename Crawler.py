@@ -15,7 +15,9 @@ sys.path.append(os.path.join(BASE_DIR,'DB_CONNECT'))
 sys.path.append(os.path.join(BASE_DIR,'DATA_TABLE'))
 from db_connection import DB_CONNECT
 from get_connection_config import *
-from tables import *
+from weather_local_code import *
+from table_info import *
+from columns import *
 
 #https://at.agromarket.kr/openApi/price/sale.do?serviceKey= ** 61D7A892DCCD44FBABBF59E3C3F4D1C5
 # &apiType=json&pageNo= ** 1   &whsalCd=110001&saleDate= **  20230131
@@ -35,10 +37,8 @@ class AT_Crawl:
         self.SERVICE_KEY = config.get_connection('AT_SERVICE_KEY')
 
         #columns to crawl
-        tmp_col1 = config.get_connection('AT_CRAWL_COLUMNS')
-        tmp_col2 = config.get_connection('AT_TABLE_COLUMNS')
-        self.crawl_col_list = ast.literal_eval(tmp_col1)
-        self.table_col_list = ast.literal_eval(tmp_col2)
+        self.crawl_col_list = [ key for key in at_dict.keys()]
+        self.table_col_list = [ value for value in at_dict.values()]
 
     async def get_urls(self, client_session, date):
         urls = [] # this list is to contain multiple url for 1 day, in which link provided is in pages. And use list to use "asyncio.gather"
@@ -115,6 +115,76 @@ class AT_Crawl:
         
     def run(self, date):
         return asyncio.run(self.main(date))
+
+class Weather_Crawl:
+
+    def __init__(self):
+
+        config = DB_CONFIG()
+        
+        #columns to crawl
+        self.crawl_col_list = [ key for key in weather_dic.keys()]
+        self.table_col_list = [ value for value in weather_dic.values()]
+
+
+        self.URL = f"https://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList"
+        self.SERVICE_KEY = config.get_connection('WEATHER_SERVICE_KEY')
+        self.headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+        }
+
+    async def get_urls(self, client_session, start_date, end_date, code):
+
+
+        url = f'https://apis.data.go.kr/1360000/AsosDalyInfoService/getWthrDataList{self.SERVICE_KEY}&pageNo=1&numOfRows=999&dataType=json&dataCd=ASOS&dateCd=DAY&startDt={start_date}&endDt={end_date}&stnIds={code}'
+
+        async with client_session.get(url) as resp1:
+            html = await resp1.text()
+            json_file = json.loads(html)
+
+            if json_file["response"]["header"]["resultMsg"] == 'NORMAL_SERVICE':
+
+                keys = list(json_file["response"].keys())
+                
+                try:
+                    if "body" in keys:
+                        # df = pd.DataFrame()
+                        df = json_normalize(json_file["response"]["body"]["items"]["item"])
+                    
+                except Exception as e:
+                    print("json to df error", e)
+
+                df = df[self.crawl_col_list]
+                df.columns = self.table_col_list
+                df = df.replace('', 1e-9)
+                df = df.sort_index()
+                bulk_mapper = df.to_dict(orient='records') 
+                    
+                return bulk_mapper
+              
+            else: 
+                print(' ERROR : Something Happened, Check the KEY of JSON file!! ')
+
+
+    async def main(self, start_date, end_date):
+        async with aiohttp.ClientSession(
+            trust_env=True,
+            connector=aiohttp.TCPConnector(ssl=False),
+        ) as self.session:
+            
+            # local_code_num : list ( 지역별 코드 )
+            local_code_num = [ local_num for local_num in local_code.values()]
+
+
+            all_data = await asyncio.gather( 
+                    *[ self.get_urls(self.session, start_date, end_date, code) for code in local_code_num ]
+            )  
+
+        return self.all_data
+        
+    def run(self):
+        return asyncio.run(self.main())
+
 
 if __name__ == '__main__':
 
