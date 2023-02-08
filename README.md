@@ -17,7 +17,6 @@ The link for the API I used is below...
  ┃ ┣ get_connection_config.py
  ┃ ┗ secrets.json
  ┣ Crawler.py
- ┣ README.md
  ┣ main.py
  ┣ requirements.txt
  ┣ server.py
