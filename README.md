@@ -6,23 +6,22 @@ In order to use this code, you MUST get the SERVICE KEY to access the API.
 The link for the API I used is below...
 
 
-```txt
-
--- DATA_TABLE
------ columns.py
------ create_table.py
------ table_info.py
------ weather_local_code.py
--- DB_CONNECT
------ db_connection.py
------ get_connection_config.py
------ secrets.json
-
--- Crawler.py
-
--- main.py
-
--- server.py
+```bash
+ ┣ DATA_TABLE
+ ┃ ┣ columns.py
+ ┃ ┣ create_table.py
+ ┃ ┣ table_info.py
+ ┃ ┗ weather_local_code.py
+ ┣ DB_CONNECT
+ ┃ ┣ db_connection.py
+ ┃ ┣ get_connection_config.py
+ ┃ ┗ secrets.json
+ ┣ Crawler.py
+ ┣ README.md
+ ┣ main.py
+ ┣ requirements.txt
+ ┣ server.py
+ ┗ test_crawl.ipynb
 ```
 
 
