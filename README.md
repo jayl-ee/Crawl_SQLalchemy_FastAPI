@@ -1,4 +1,4 @@
-# API Crawling - Fast API & SQL alchemy
+# Crawling - Fast API & SQL alchemy
 
 this repository provides code to crawl from API and insert into database
 In order to use this code, you MUST get the SERVICE KEY to access the API.
