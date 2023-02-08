@@ -23,9 +23,7 @@ The link for the API I used is below...
  ┗ test_crawl.ipynb
 ```
 
-
-
-
+```txt
 ## Database Platform
 
 - PostgresSQL
@@ -41,7 +39,6 @@ SQLAlchemy==1.4.39
 asyncio==3.4.3
 uvicorn==0.20.0
 ```
-
 
 
 ### 📁code
